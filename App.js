@@ -1,22 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
-import * as Font from 'expo-font';
 import { useFonts } from 'expo-font';
-import { Roboto_400Regular, Roboto_500Medium } from '@expo-google-fonts/roboto';
+import { Comfortaa_300Light, Comfortaa_400Regular, Comfortaa_500Medium, Comfortaa_600SemiBold, Comfortaa_700Bold } from '@expo-google-fonts/comfortaa';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import LoadingPage from './page/LoadingPage';
 import TitlePage from './page/TitlePage';
+import EmailPage from './page/EmailPage';
+import ConfirmationPage from './page/ConfirmationPage';
+import Confidentiality from './page/documents/Confidentiality';
+import User from './page/documents/User';
+import AppLog from './page/app/AppLog';
+
+const Stack = createStackNavigator();
 
 export default function App() {
-  const [fontsLoaded, error] = useFonts({
-    Roboto_400Regular,
-    Roboto_500Medium,
+  let [fontsLoaded, error] = useFonts({
+    Comfortaa_300Light,
+    Comfortaa_400Regular,
+    Comfortaa_500Medium,
+    Comfortaa_600SemiBold,
+    Comfortaa_700Bold,
   });
 
   if (error) {
     return <Text>Error loading fonts</Text>;
   }
 
-  return fontsLoaded ? <TitlePage /> : <LoadingPage />;
+  if (!fontsLoaded) {
+    return <LoadingPage/>;
+  }
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="AppLog">
+        <Stack.Screen name="Title" component={TitlePage} options={{ headerShown: false }} />
+        <Stack.Screen name="Email" component={EmailPage} options={{ headerShown: false }} />
+        <Stack.Screen name="Confirm" component={ConfirmationPage} options={{ headerShown: false }} />
+        <Stack.Screen name="User" component={User} options={{ headerShown: false }} />
+        <Stack.Screen name="Confidentiality" component={Confidentiality} options={{ headerShown: false }} />
+        <Stack.Screen name="AppLog" component={AppLog} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
 
 const styles = StyleSheet.create({
