@@ -11,6 +11,7 @@ import ConfirmationPage from './page/ConfirmationPage';
 import Confidentiality from './page/documents/Confidentiality';
 import User from './page/documents/User';
 import AppLog from './page/app/AppLog';
+import AboutUs from './page/app/Profile/AboutUs';
 
 const Stack = createStackNavigator();
 
@@ -33,13 +34,14 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="AppLog">
+      <Stack.Navigator initialRouteName="Title">
         <Stack.Screen name="Title" component={TitlePage} options={{ headerShown: false }} />
         <Stack.Screen name="Email" component={EmailPage} options={{ headerShown: false }} />
         <Stack.Screen name="Confirm" component={ConfirmationPage} options={{ headerShown: false }} />
         <Stack.Screen name="User" component={User} options={{ headerShown: false }} />
         <Stack.Screen name="Confidentiality" component={Confidentiality} options={{ headerShown: false }} />
         <Stack.Screen name="AppLog" component={AppLog} options={{ headerShown: false }} />
+        <Stack.Screen name="AboutUs" component={AboutUs} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

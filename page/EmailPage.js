@@ -27,7 +27,7 @@ export default function EmailPage({ navigation }) {
         <Appbar.Action
           icon="arrow-left"
           onPress={() => navigation.goBack()}
-          color="#6f9c3d"
+          color="#5c5c5c"
         />
         <Appbar.Content
           title="Введите свою почту"
@@ -105,8 +105,8 @@ const styles = StyleSheet.create({
   textContainer: {
     alignItems: 'center',
     flex:1,
-    justifyContent:'center',
-    marginBottom:'10%'
+    justifyContent:'flex-end',
+    marginBottom:'20%'
   },
   title: {
     fontFamily: 'Comfortaa_700Bold',
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom:'40%'
+    marginBottom:'70%'
   },
   input: {
     width: '90%',

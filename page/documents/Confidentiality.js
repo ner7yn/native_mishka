@@ -11,7 +11,7 @@ export default function Confidentiality({ navigation }) {
         <Appbar.Action
           icon="arrow-left"
           onPress={() => navigation.goBack()}
-          color="#6f9c3d"
+          color="#5c5c5c"
         />
         <Appbar.Content
           title="Политика конфеденциальности"
