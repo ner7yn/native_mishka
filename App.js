@@ -34,7 +34,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Title">
+      <Stack.Navigator initialRouteName="AppLog">
         <Stack.Screen name="Title" component={TitlePage} options={{ headerShown: false }} />
         <Stack.Screen name="Email" component={EmailPage} options={{ headerShown: false }} />
         <Stack.Screen name="Confirm" component={ConfirmationPage} options={{ headerShown: false }} />

@@ -1,19 +1,15 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { Provider } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 import ProfileScreen from './ProfileScreen';
+import ReadySoundsScreen from './Sound/ReadySoundsScreen';
+import fairyTales from './Sound/fairyTales';
 
-function ReadySoundsScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Готовые звуки!</Text>
-    </View>
-  );
-}
 
 function MyRecordingsScreen() {
   return (
@@ -25,6 +21,16 @@ function MyRecordingsScreen() {
 
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+function ReadySoundsStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="Profile" component={ReadySoundsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="fairyTales" component={fairyTales} options={{ headerShown: false }} />
+    </Stack.Navigator>
+  );
+}
 
 export default function AppLog() {
   return (
@@ -51,7 +57,7 @@ export default function AppLog() {
       >
         <Tab.Screen
           name="Библиотека звуков"
-          component={ReadySoundsScreen}
+          component={ReadySoundsStack}
           options={{
             tabBarLabel: 'Библиотека',
             tabBarIcon: ({ color }) => (
