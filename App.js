@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import React from 'react';
+import { Text, StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Comfortaa_300Light, Comfortaa_400Regular, Comfortaa_500Medium, Comfortaa_600SemiBold, Comfortaa_700Bold } from '@expo-google-fonts/comfortaa';
 import { NavigationContainer } from '@react-navigation/native';
@@ -29,12 +29,12 @@ export default function App() {
   }
 
   if (!fontsLoaded) {
-    return <LoadingPage/>;
+    return <LoadingPage />;
   }
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="AppLog">
+      <Stack.Navigator initialRouteName="Title">
         <Stack.Screen name="Title" component={TitlePage} options={{ headerShown: false }} />
         <Stack.Screen name="Email" component={EmailPage} options={{ headerShown: false }} />
         <Stack.Screen name="Confirm" component={ConfirmationPage} options={{ headerShown: false }} />

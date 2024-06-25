@@ -3,7 +3,7 @@ import { Appbar } from 'react-native-paper';
 
 export default function AboutUs({ navigation }) {
     return (
-        <View style={{flex:1,backgroundColor: '#fff',}}>
+        <View style={{ flex: 1, backgroundColor: '#fff', }}>
             <Appbar.Header theme={{ colors: { background: '#fff' } }}>
                 <Appbar.Action
                     icon="arrow-left"
@@ -16,7 +16,7 @@ export default function AboutUs({ navigation }) {
                         color: '#5c5c5c',
                         fontFamily: 'Comfortaa_500Medium',
                         fontSize: 16,
-                        marginLeft:'9%'
+                        marginLeft: '9%'
                     }}
                 />
             </Appbar.Header>
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        paddingTop: '40%',
+        marginTop: '40%',
         paddingHorizontal: '3%'
     },
     button: {

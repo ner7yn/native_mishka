@@ -15,11 +15,33 @@ export default function EmailPage({ navigation }) {
   }, [email]);
 
   useEffect(() => {
-    // Устанавливаем фокус на input при монтировании компонента
     if (emailInputRef.current) {
       emailInputRef.current.focus();
     }
   }, []);
+
+  const sendEmailToServer = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/auth/generate-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        navigation.navigate('Confirm', { email });
+      } else {
+        alert('Ошибка при отправке email: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Ошибка при отправке email:', error);
+      alert('Произошла ошибка при отправке email. Пожалуйста, попробуйте позже.');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -71,7 +93,7 @@ export default function EmailPage({ navigation }) {
               !isValidEmail && styles.buttonInvalid
             ]}
             labelStyle={styles.buttonLabel}
-            onPress={() => navigation.navigate('Confirm',{email})}
+            onPress={sendEmailToServer}
             disabled={!isValidEmail}
           >
             Получить код
@@ -94,7 +116,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 30,
     flexGrow: 1,
-    justifyContent:'flex-end',
+    justifyContent: 'flex-end',
   },
   appbarTitle: {
     color: '#5c5c5c',
@@ -104,9 +126,9 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     alignItems: 'center',
-    flex:1,
-    justifyContent:'flex-end',
-    marginBottom:'20%'
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginBottom: '20%'
   },
   title: {
     fontFamily: 'Comfortaa_700Bold',
@@ -123,7 +145,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom:'70%'
+    marginBottom: '70%'
   },
   input: {
     width: '90%',
@@ -135,7 +157,7 @@ const styles = StyleSheet.create({
     color: '#5c5c5c',
     borderBottomWidth: 1,
     borderColor: '#d3d3d3',
-    marginBottom:'10%'
+    marginBottom: '10%'
   },
   inputFocused: {
     borderColor: '#6f9c3d',

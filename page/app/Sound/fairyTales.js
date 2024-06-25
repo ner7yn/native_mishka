@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 
 export default function fairyTales({ navigation }) {
@@ -6,39 +6,39 @@ export default function fairyTales({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={{ width: '100%', alignItems: 'center' }}>
-                <View style={{ marginBottom: '3%', width: '100%' }}>
+                <View style={{ marginBottom: '3%', width: '100%'}}>
                     <View style={styles.card}>
-                        <View>
-                            <Text style={{ fontFamily: 'Comfortaa_700Bold', fontSize: 14, color: "#5c5c5c" }}>
+                        <View style={styles.cardText}>
+                            <Text style={styles.cardTextTitle}>
                                 Маша и медвель
                             </Text>
-                            <Text style={{ fontFamily: 'Comfortaa_700Bold', fontSize: 14, color: "#bbb" }}>
+                            <Text style={styles.cardTime}>
                                 3:17
                             </Text>
                         </View>
-                        <AntDesign name="play" size={30} color="#5c5c5c" />
+                        <AntDesign name="play" size={30} color="#777" />
                     </View>
                     <View style={styles.card}>
-                        <View>
-                            <Text style={{ fontFamily: 'Comfortaa_700Bold', fontSize: 14, color: "#5c5c5c" }}>
+                        <View style={styles.cardText}>
+                            <Text style={styles.cardTextTitle}>
                                 Сказка а рыбаке и рыбке
                             </Text>
-                            <Text style={{ fontFamily: 'Comfortaa_700Bold', fontSize: 14, color: "#bbb" }}>
+                            <Text style={styles.cardTime}>
                                 3:17
                             </Text>
                         </View>
-                        <AntDesign name="play" size={30} color="#5c5c5c" />
+                        <AntDesign name="play" size={30} color="#777" />
                     </View>
                     <View style={styles.card}>
-                        <View>
-                            <Text style={{ fontFamily: 'Comfortaa_700Bold', fontSize: 14, color: "#5c5c5c" }}>
+                        <View style={styles.cardText}>
+                            <Text style={styles.cardTextTitle}>
                                 пока
                             </Text>
-                            <Text style={{ fontFamily: 'Comfortaa_700Bold', fontSize: 14, color: "#bbb" }}>
+                            <Text style={styles.cardTime}>
                                 3:17
                             </Text>
                         </View>
-                        <AntDesign name="play" size={30} color="#5c5c5c" />
+                        <AntDesign name="play" size={30} color="#777" />
                     </View>
                 </View>
             </View>
@@ -65,9 +65,19 @@ const styles = StyleSheet.create({
         height: 60,
         paddingHorizontal: '4%',
         justifyContent: 'space-between',
-        flexDirection:'row',
-        alignItems:'center',
+        flexDirection: 'row',
+        alignItems: 'center',
         borderBottomColor: '#ccc',
         borderBottomWidth: 1
+    },cardText:{
+        gap:10
+    },cardTextTitle:{ 
+        fontFamily: 'Comfortaa_700Bold', 
+        fontSize: 16, 
+        color: "#5c5c5c" 
+    },cardTime:{ 
+        fontFamily: 'Comfortaa_700Bold', 
+        fontSize: 12, 
+        color: "#bbb" 
     }
 });

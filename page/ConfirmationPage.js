@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button as PaperButton, Appbar } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-export default function ConfirmationPage({ navigation,route}) {
+export default function ConfirmationPage({ navigation, route }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const { email } = route.params;
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -35,7 +35,32 @@ export default function ConfirmationPage({ navigation,route}) {
 
   const isCodeComplete = code.every(digit => digit !== '');
 
+  const sendCodeToServer = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/auth/generate-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        navigation.navigate('Confirm', { email });
+      } else {
+        alert('Ошибка при отправке email: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Ошибка при отправке email:', error);
+      alert('Произошла ошибка при отправке email. Пожалуйста, попробуйте позже.');
+    }
+  };
+
   const getCodeString = () => code.join('');
+
+  console.log(getCodeString)
 
   return (
     <View style={{ backgroundColor: '#fff', flex: 1 }}>
@@ -60,7 +85,7 @@ export default function ConfirmationPage({ navigation,route}) {
             Введите код подтверждения
           </Text>
           <Text style={styles.subtitle}>
-            Мы отправили письмо с кодом на почту {email} Введите этот код
+            Мы отправили письмо с кодом на почту {email} Введите этот код(Проверьте папку Спам)
           </Text>
         </View>
         <View style={styles.inputContainer}>
@@ -76,8 +101,8 @@ export default function ConfirmationPage({ navigation,route}) {
               maxLength={1}
               onFocus={() => setFocusedIndex(index)}
               ref={(ref) => (inputRefs.current[index] = ref)}
-              editable={true} // Убедитесь, что это свойство установлено в true
-              selectTextOnFocus={true} // Убедитесь, что это свойство установлено в true
+              editable={true}
+              selectTextOnFocus={true}
             />
           ))}
         </View>
@@ -86,7 +111,7 @@ export default function ConfirmationPage({ navigation,route}) {
             mode="outlined"
             style={[
               styles.button,
-              { backgroundColor: "#6f9c3d", borderWidth: 0 }, !isCodeComplete &&{backgroundColor: '#d3d3d3'}
+              { backgroundColor: "#6f9c3d", borderWidth: 0 }, !isCodeComplete && { backgroundColor: '#d3d3d3' }
             ]}
             labelStyle={[
               { color: '#ffff', fontSize: 18, fontFamily: 'Comfortaa_500Medium' },
@@ -110,7 +135,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },subtitle: {
+  }, subtitle: {
     fontFamily: 'Comfortaa_500Medium',
     fontSize: 14,
     color: "#5c5c5c",
@@ -119,7 +144,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: '20%',
     flexGrow: 1,
-    justifyContent:'center',
+    justifyContent: 'center',
   },
   inputContainer: {
     flexDirection: 'row',

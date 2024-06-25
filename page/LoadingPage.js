@@ -1,5 +1,5 @@
-import { Text, View, StyleSheet, Image } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { Text, View, Image } from 'react-native';
+import React, { useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
 
 export default function LoadingPage({ navigation }) {

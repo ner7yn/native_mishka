@@ -1,22 +1,20 @@
-import { Text, View,TouchableOpacity, StyleSheet,Linking, Alert } from 'react-native';
+import { Text, View, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 export default function ProfileScreen({ navigation }) {
 
-    const email = 'ner7yn@gmail.com'; // Замените на ваш email
+    const email = 'ner7yn@gmail.com';
 
     const handlePress = async () => {
-      // Проверяем, можем ли мы открыть почтовый клиент
-      const canOpen = await Linking.canOpenURL(`mailto:${email}`);
-  
-      if (canOpen) {
-        // Открываем почтовый клиент с заранее заполненным адресом
-        await Linking.openURL(`mailto:${email}`);
-      } else {
-        // Если не можем открыть почтовый клиент, показываем сообщение об ошибке
-        Alert.alert('Не удалось открыть почтовый клиент');
-      }}
-    
+        const canOpen = await Linking.canOpenURL(`mailto:${email}`);
+
+        if (canOpen) {
+            await Linking.openURL(`mailto:${email}`);
+        } else {
+            Alert.alert('Не удалось открыть почтовый клиент');
+        }
+    }
+
     return (
         <View style={styles.container}>
             <View style={{ width: '100%', alignItems: 'center' }}>
