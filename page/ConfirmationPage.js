@@ -1,12 +1,15 @@
-import { Text, View, TextInput, StyleSheet } from 'react-native';
+import { Text, View, TextInput, StyleSheet, Alert } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button as PaperButton, Appbar } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Spinner from 'react-native-loading-spinner-overlay';
+import Toast from 'react-native-toast-message';
 
 export default function ConfirmationPage({ navigation, route }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const { email } = route.params;
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef([]);
 
   const handleChange = (index, value) => {
@@ -35,35 +38,50 @@ export default function ConfirmationPage({ navigation, route }) {
 
   const isCodeComplete = code.every(digit => digit !== '');
 
-  const sendCodeToServer = async () => {
+  const getCodeString = () => code.join('');
+
+  const verifyCode = async () => {
+    const codeString = getCodeString();
+    setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/auth/generate-code', {
+      const response = await fetch('http://192.168.1.7:5000/auth/verify-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, }),
+        body: JSON.stringify({ email, code: codeString }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        navigation.navigate('Confirm', { email });
-      } else {
-        alert('Ошибка при отправке email: ' + data.message);
+      if (response.status === 401) {
+        Toast.show({
+          type: 'error',
+          position: 'top',
+          text1: 'Ошибка кода',
+          text2: 'Код не совпадает. Пожалуйста, проверьте еще раз.',
+          visibilityTime: 4000,
+          autoHide: true,
+          topOffset: 100,
+          bottomOffset: 40,
+        });
+      } else if (response.ok) {
+        navigation.navigate('AppLog');
       }
     } catch (error) {
-      console.error('Ошибка при отправке email:', error);
-      alert('Произошла ошибка при отправке email. Пожалуйста, попробуйте позже.');
+      console.error('Ошибка при проверке кода:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const getCodeString = () => code.join('');
-
-  console.log(getCodeString)
-
   return (
     <View style={{ backgroundColor: '#fff', flex: 1 }}>
+      <Spinner
+        visible={isLoading}
+        textContent={''}
+        textStyle={styles.spinnerTextStyle}
+        color='#6f9c3d'
+        overlayColor='rgba(255,255,255, 0.5)'
+      />
       <Appbar.Header theme={{ colors: { background: 'transparent' } }}>
         <Appbar.Action
           icon="arrow-left"
@@ -85,7 +103,7 @@ export default function ConfirmationPage({ navigation, route }) {
             Введите код подтверждения
           </Text>
           <Text style={styles.subtitle}>
-            Мы отправили письмо с кодом на почту {email} Введите этот код(Проверьте папку Спам)
+            Мы отправили письмо с кодом на почту {email} Введите этот код <Text style={{color:'#aaa'}}>(Проверьте папку Спам)</Text>
           </Text>
         </View>
         <View style={styles.inputContainer}>
@@ -116,13 +134,14 @@ export default function ConfirmationPage({ navigation, route }) {
             labelStyle={[
               { color: '#ffff', fontSize: 18, fontFamily: 'Comfortaa_500Medium' },
             ]}
-            onPress={() => navigation.navigate('AppLog')}
+            onPress={verifyCode}
             disabled={!isCodeComplete}
           >
             Отправить
           </PaperButton>
         </View>
       </KeyboardAwareScrollView>
+      <Toast ref={(ref) => Toast.setRef(ref)} />
     </View>
   );
 }
@@ -139,6 +158,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Comfortaa_500Medium',
     fontSize: 14,
     color: "#5c5c5c",
+    textAlign:'center'
   },
   contentContainer: {
     alignItems: 'center',

@@ -2,11 +2,14 @@ import { Text, View, TextInput, StyleSheet } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button as PaperButton, Appbar } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Spinner from 'react-native-loading-spinner-overlay';
+import Toast from 'react-native-toast-message';
 
 export default function EmailPage({ navigation }) {
   const [email, setEmail] = useState('');
   const [isValidEmail, setIsValidEmail] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const emailInputRef = useRef(null);
 
   useEffect(() => {
@@ -21,8 +24,9 @@ export default function EmailPage({ navigation }) {
   }, []);
 
   const sendEmailToServer = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/auth/generate-code', {
+      const response = await fetch('http://192.168.1.7:5000/auth/generate-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,16 +39,43 @@ export default function EmailPage({ navigation }) {
       if (response.ok) {
         navigation.navigate('Confirm', { email });
       } else {
-        alert('Ошибка при отправке email: ' + data.message);
+        Toast.show({
+          type: 'error',
+          position: 'top',
+          text1: 'Ошибка',
+          text2: 'Произошла ошибка при отправке email. Пожалуйста, попробуйте позже.',
+          visibilityTime: 4000,
+          autoHide: true,
+          topOffset: 100,
+          bottomOffset: 40,
+        });
       }
     } catch (error) {
-      console.error('Ошибка при отправке email:', error);
-      alert('Произошла ошибка при отправке email. Пожалуйста, попробуйте позже.');
+      Toast.show({
+        type: 'error',
+        position: 'top',
+        text1: 'Ошибка',
+        text2: 'Произошла ошибка при отправке email. Пожалуйста, попробуйте позже.',
+        visibilityTime: 4000,
+        autoHide: true,
+        topOffset: 100,
+        bottomOffset: 40,
+      });
+      // console.error('Ошибка при отправке email:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
+      <Spinner
+        visible={isLoading}
+        textContent={''}
+        textStyle={styles.spinnerTextStyle}
+        color='#6f9c3d'
+        overlayColor='rgba(255,255,255, 0.5)'
+      />
       <Appbar.Header theme={{ colors: { background: 'transparent' } }}>
         <Appbar.Action
           icon="arrow-left"
@@ -176,4 +207,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Comfortaa_500Medium',
   },
+  spinnerTextStyle: {
+    color: '#FFF'
+  }
 });
