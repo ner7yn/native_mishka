@@ -13,13 +13,24 @@
       "loading": false
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/Loading.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "FOREGROUND_SERVICE",
+        "WAKE_LOCK"
+      ]
     },
     "web": {
       "favicon": "./assets/Loading.png"

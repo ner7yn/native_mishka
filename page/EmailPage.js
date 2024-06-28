@@ -26,7 +26,7 @@ export default function EmailPage({ navigation }) {
   const sendEmailToServer = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://192.168.1.7:5000/auth/generate-code', {
+      const response = await fetch('https://node-mishka.onrender.com/auth/generate-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
