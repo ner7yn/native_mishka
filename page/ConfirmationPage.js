@@ -4,6 +4,7 @@ import { Button as PaperButton, Appbar } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Spinner from 'react-native-loading-spinner-overlay';
 import Toast from 'react-native-toast-message';
+import { useAuth } from '../context/AuthContext'; // Путь к вашему AuthContext
 
 export default function ConfirmationPage({ navigation, route }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -11,6 +12,7 @@ export default function ConfirmationPage({ navigation, route }) {
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef([]);
+  const { login } = useAuth(); // Используем функцию login из контекста аутентификации
 
   const handleChange = (index, value) => {
     const newCode = [...code];
@@ -52,6 +54,8 @@ export default function ConfirmationPage({ navigation, route }) {
         body: JSON.stringify({ email, code: codeString }),
       });
 
+      const responseData = await response.json();
+
       if (response.status === 401) {
         Toast.show({
           type: 'error',
@@ -64,6 +68,8 @@ export default function ConfirmationPage({ navigation, route }) {
           bottomOffset: 40,
         });
       } else if (response.ok) {
+        const userId = responseData.userId; // Предполагаем, что сервер возвращает userId в ответе
+        login({ userId, email }); // Сохраняем userId и email в контексте аутентификации
         navigation.navigate('AppLog');
       }
     } catch (error) {

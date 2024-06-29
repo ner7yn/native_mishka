@@ -1,3 +1,4 @@
+// App.js
 import React, { useEffect } from 'react';
 import { Text, StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
@@ -15,6 +16,7 @@ import AboutUs from './page/app/Profile/AboutUs';
 import { Audio } from 'expo-av';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 const Stack = createStackNavigator();
 const BACKGROUND_FETCH_TASK = 'background-fetch';
@@ -25,7 +27,9 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
   return BackgroundFetch.Result.NewData;
 });
 
-export default function App() {
+const AppContent = () => {
+  const { user } = useAuth();
+
   let [fontsLoaded, error] = useFonts({
     Comfortaa_300Light,
     Comfortaa_400Regular,
@@ -87,7 +91,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="AppLog">
+      <Stack.Navigator initialRouteName={user ? "AppLog" : "Title"}>
         <Stack.Screen name="Title" component={TitlePage} options={{ headerShown: false }} />
         <Stack.Screen name="Email" component={EmailPage} options={{ headerShown: false }} />
         <Stack.Screen name="Confirm" component={ConfirmationPage} options={{ headerShown: false }} />
@@ -97,6 +101,14 @@ export default function App() {
         <Stack.Screen name="AboutUs" component={AboutUs} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
+  );
+};
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

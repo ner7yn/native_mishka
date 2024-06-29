@@ -7,17 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 import ProfileScreen from './ProfileScreen';
 import ReadySoundsScreen from './Sound/ReadySoundsScreen';
-import fairyTales from './Sound/fairyTales';
-
-
-function MyRecordingsScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Свои записи!</Text>
-    </View>
-  );
-}
-
+import FairyTales from './Sound/FairyTales';
+import MyRecordingScreen from './MyRecordingScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -26,7 +17,7 @@ function ReadySoundsStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Profile" component={ReadySoundsScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="fairyTales" component={fairyTales} options={{ headerShown: false }} />
+      <Stack.Screen name="fairyTales" component={FairyTales} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
@@ -66,7 +57,7 @@ export default function AppLog() {
         />
         <Tab.Screen
           name="Свои записи"
-          component={MyRecordingsScreen}
+          component={MyRecordingScreen}
           options={{
             tabBarLabel: 'Свои записи',
             tabBarIcon: ({ color }) => (

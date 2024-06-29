@@ -1,7 +1,10 @@
+import React from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext'; // Путь к вашему AuthContext
 
 export default function ProfileScreen({ navigation }) {
+    const { logout } = useAuth();
 
     const email = 'ner7yn@gmail.com';
 
@@ -31,7 +34,7 @@ export default function ProfileScreen({ navigation }) {
                         </Text>
                         <FontAwesome5 name="arrow-right" size={16} color="#ccc" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Title')} style={{ height: 60, paddingHorizontal: '4%', justifyContent: 'space-between', alignItems: 'center', flexDirection: 'row', borderBottomColor: '#ccc', borderBottomWidth: 1 }}>
+                    <TouchableOpacity onPress={() => { logout(); navigation.navigate('Title'); }} style={{ height: 60, paddingHorizontal: '4%', justifyContent: 'space-between', alignItems: 'center', flexDirection: 'row', borderBottomColor: '#ccc', borderBottomWidth: 1 }}>
                         <Text style={{ fontFamily: 'Comfortaa_700Bold', fontSize: 14, color: "#5c5c5c" }}>
                             Выйти
                         </Text>

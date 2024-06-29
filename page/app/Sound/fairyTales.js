@@ -3,65 +3,95 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AntDesign } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 
-export default function fairyTales({ route }) {
+export default function FairyTales({ route }) {
     const { audioData } = route.params;
-    const [sound, setSound] = useState();
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [positionMillis, setPositionMillis] = useState(0);
-    const [currentAudioIndex, setCurrentAudioIndex] = useState(null);
-    const [pausedPosition, setPausedPosition] = useState(0);
-    const intervalRef = useRef(null);
+    const [sounds, setSounds] = useState([]);
+    const [isPlaying, setIsPlaying] = useState({});
+    const [positionMillis, setPositionMillis] = useState({});
+    const [pausedPosition, setPausedPosition] = useState({});
+    const intervalRef = useRef({});
+
+
+
+    useEffect(() => {
+        audioData.forEach((item, index) => {
+            if (formatTime(positionMillis[index]) === item.duration && isPlaying[index]) {
+                setIsPlaying(prev => ({ ...prev, [index]: false }));
+                setPositionMillis(prev => ({ ...prev, [index]: 0 }));
+                setPausedPosition(prev => ({ ...prev, [index]: 0 }));
+            }
+        });
+    }, [positionMillis, isPlaying, audioData]);
 
     const playAudio = async (url, index) => {
-        if (sound) {
-            await sound.unloadAsync();
+        if (sounds[index]) {
+            await sounds[index].unloadAsync();
         }
         try {
-            const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: false }, onPlaybackStatusUpdate);
-            setSound(sound);
-            setCurrentAudioIndex(index);
-            await sound.playFromPositionAsync(pausedPosition);
-            setIsPlaying(true);
+            const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: false }, status => onPlaybackStatusUpdate(status, index));
+            const newSounds = [...sounds];
+            newSounds[index] = sound;
+            setSounds(newSounds);
+            setIsPlaying(prev => ({ ...prev, [index]: true }));
+            await sound.playFromPositionAsync(pausedPosition[index] || 0);
         } catch (error) {
             console.error('Error playing audio:', error);
         }
     };
 
-    const pauseAudio = async () => {
-        if (sound) {
-            await sound.pauseAsync();
-            setPausedPosition(positionMillis); // Save the current position
-            setIsPlaying(false);
+    const pauseAudio = async (index) => {
+        if (sounds[index]) {
+            await sounds[index].pauseAsync();
+            setPausedPosition(prev => ({ ...prev, [index]: positionMillis[index] || 0 }));
+            setIsPlaying(prev => ({ ...prev, [index]: false }));
         }
     };
 
-    const onPlaybackStatusUpdate = (status) => {
+    const onPlaybackStatusUpdate = (status, index) => {
         if (status.isPlaying) {
-            setPositionMillis(status.positionMillis);
-        } else {
-            setPositionMillis(status.positionMillis);
+            setPositionMillis(prev => ({ ...prev, [index]: status.positionMillis }));
+        } else if (status.didJustFinish) {
+            setIsPlaying(prev => ({ ...prev, [index]: false }));
+            setPositionMillis(prev => ({ ...prev, [index]: 0 }));
+            setPausedPosition(prev => ({ ...prev, [index]: 0 }));
         }
     };
 
     useEffect(() => {
-        if (isPlaying) {
-            intervalRef.current = setInterval(() => {
-                setPositionMillis(prevPosition => prevPosition + 1000);
-            }, 1000);
-        } else {
-            clearInterval(intervalRef.current);
-        }
+        audioData.forEach((_, index) => {
+            if (isPlaying[index]) {
+                intervalRef.current[index] = setInterval(() => {
+                    setPositionMillis(prev => ({ ...prev, [index]: (prev[index] || 0) + 1000 }));
+                }, 1000);
+            } else {
+                clearInterval(intervalRef.current[index]);
+            }
+        });
 
-        return () => clearInterval(intervalRef.current);
-    }, [isPlaying]);
+        return () => {
+            audioData.forEach((_, index) => {
+                clearInterval(intervalRef.current[index]);
+            });
+        };
+    }, [isPlaying, audioData]);
 
     useEffect(() => {
-        return sound
-            ? () => {
-                  sound.unloadAsync();
-              }
-            : undefined;
-    }, [sound]);
+        return () => {
+            sounds.forEach(sound => {
+                if (sound) {
+                    sound.unloadAsync();
+                }
+            });
+        };
+    }, [sounds]);
+
+    useEffect(() => {
+        audioData.forEach((_, index) => {
+            if (positionMillis[index] === 0 && isPlaying[index]) {
+                setIsPlaying(prev => ({ ...prev, [index]: false }));
+            }
+        });
+    }, [positionMillis, isPlaying, audioData]);
 
     const formatTime = (millis) => {
         if (isNaN(millis)) {
@@ -83,11 +113,11 @@ export default function fairyTales({ route }) {
                                     {item.name}
                                 </Text>
                                 <Text style={styles.cardTime}>
-                                    {formatTime(isPlaying ? positionMillis : pausedPosition)} / {item.duration}
+                                    {formatTime(isPlaying[index] ? positionMillis[index] || 0 : pausedPosition[index] || 0)} / {item.duration}
                                 </Text>
                             </View>
-                            <TouchableOpacity onPress={() => isPlaying && currentAudioIndex === index ? pauseAudio() : playAudio(item.audioFile, index)}>
-                                <AntDesign name={isPlaying && currentAudioIndex === index ? "pausecircle" : "play"} size={30} color="#777" />
+                            <TouchableOpacity onPress={() => isPlaying[index] ? pauseAudio(index) : playAudio(item.audioFile, index)}>
+                                <AntDesign name={isPlaying[index] ? "pausecircle" : "play"} size={30} color="#777" />
                             </TouchableOpacity>
                         </View>
                     ))}
