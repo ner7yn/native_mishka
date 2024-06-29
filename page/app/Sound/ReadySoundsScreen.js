@@ -39,9 +39,9 @@ export default function ReadySoundsScreen({ navigation }) {
 
     const cards = [
         { text: 'Сказки', icon: <FontAwesome name="book" size={200} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('fairyTales', { audioData: getFilteredData('сказка') }) },
-        { text: 'Песенки', icon: <FontAwesome6 name="music" size={180} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('AboutUs', { audioData: getFilteredData('песня') }) },
-        { text: 'Звук природы', icon: <MaterialIcons name="emoji-nature" size={200} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Title', { audioData: getFilteredData('природа') }) },
-        { text: 'Звуки животных', icon: <MaterialCommunityIcons name="dog" size={200} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Title', { audioData: getFilteredData('животные') }) },
+        { text: 'Песенки', icon: <FontAwesome6 name="music" size={180} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Song', { audioData: getFilteredData('песня') }) },
+        { text: 'Звук природы', icon: <MaterialIcons name="emoji-nature" size={200} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Nature', { audioData: getFilteredData('природа') }) },
+        { text: 'Звуки животных', icon: <MaterialCommunityIcons name="dog" size={200} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Animals', { audioData: getFilteredData('животные') }) },
     ];
 
     return (

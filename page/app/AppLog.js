@@ -9,6 +9,9 @@ import ProfileScreen from './ProfileScreen';
 import ReadySoundsScreen from './Sound/ReadySoundsScreen';
 import FairyTales from './Sound/FairyTales';
 import MyRecordingScreen from './MyRecordingScreen';
+import Song from './Sound/Song';
+import Nature from './Sound/Nature';
+import Animals from './Sound/Animals';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -18,6 +21,9 @@ function ReadySoundsStack() {
     <Stack.Navigator>
       <Stack.Screen name="Profile" component={ReadySoundsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="fairyTales" component={FairyTales} options={{ headerShown: false }} />
+      <Stack.Screen name="Song" component={Song} options={{ headerShown: false }} />
+      <Stack.Screen name="Nature" component={Nature} options={{ headerShown: false }} />
+      <Stack.Screen name="Animals" component={Animals} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

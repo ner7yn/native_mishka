@@ -5,6 +5,7 @@ import { Audio } from 'expo-av';
 import { AntDesign } from '@expo/vector-icons';
 import { Button as PaperButton } from 'react-native-paper';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { useAuth } from '../../context/AuthContext'; // Путь к вашему AuthContext
 
 export default function MyRecordingScreen({ navigation }) {
     const [isRecording, setIsRecording] = useState(false);
@@ -25,6 +26,34 @@ export default function MyRecordingScreen({ navigation }) {
     const recordingTimer = useRef(null);
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [recordingToDelete, setRecordingToDelete] = useState(null);
+    const { user } = useAuth();
+
+    useEffect(() => {
+        fetchUserRecords();
+    }, [recordings]);
+
+    const fetchUserRecords = async () => {
+        try {
+            const response = await fetch('https://node-mishka.onrender.com/record/user-records', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: user.userId })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Fetching records failed: ${errorText}`);
+            }
+
+            const records = await response.json();
+            setRecordings(records);
+        } catch (error) {
+            console.error('Error fetching user records:', error);
+        }
+    };
+
 
     useEffect(() => {
         return () => {
@@ -142,16 +171,62 @@ export default function MyRecordingScreen({ navigation }) {
         startRecordingTimer();
     };
 
-    const saveRecording = () => {
+    const saveRecording = async () => {
         if (newRecordingName.trim() === '') {
             alert('Please enter a recording name');
             return;
         }
-        setRecordings((prev) => [...prev, { uri: uri, name: newRecordingName, duration: durationMillis }]);
-        setModalVisible(false);
-        setNewRecordingName('');
-        setRecordingTime(0);
+    
+        const formData = new FormData();
+        formData.append('audioFile', {
+            uri: uri,
+            type: 'audio/x-wav',
+            name: newRecordingName + '.wav'
+        });
+    
+        try {
+            const uploadResponse = await fetch('https://node-mishka.onrender.com/audio/upload', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+    
+            if (!uploadResponse.ok) {
+                const errorText = await uploadResponse.text();
+                throw new Error(`Upload failed: ${errorText}`);
+            }
+    
+            const uploadData = await uploadResponse.json();
+            const { audioFile } = uploadData;
+    
+            const createResponse = await fetch('https://node-mishka.onrender.com/record/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: newRecordingName,
+                    audioFile: audioFile,
+                    duration: durationMillis, // Используем durationMillis из состояния
+                    user: user.userId
+                })
+            });
+            const createData = await createResponse.text();
+        console.log('Server response:', createData);
+            console.log(createData);
+    
+            setRecordings((prev) => [...prev, { uri: uri, name: newRecordingName, duration: durationMillis }]);
+            setModalVisible(false);
+            setNewRecordingName('');
+            setRecordingTime(0);
+        } catch (error) {
+            console.error('Error uploading or creating record:', error);
+        }
     };
+    
+
 
     const playAudio = async (uri, index) => {
         if (sounds.current[index]) {
@@ -206,11 +281,29 @@ export default function MyRecordingScreen({ navigation }) {
         setDeleteModalVisible(true);
     };
 
-    const deleteRecording = () => {
-        if (recordingToDelete !== null) {
-            setRecordings((prev) => prev.filter((_, i) => i !== recordingToDelete));
-            setDeleteModalVisible(false);
-            setRecordingToDelete(null);
+    const deleteRecording = async () => {
+        if (recordingToDelete !== null && recordings[recordingToDelete]?._id) {
+            try {
+                const response = await fetch(`https://node-mishka.onrender.com/record/delete/${recordings[recordingToDelete]._id}`, {
+                    method: 'DELETE'
+                });
+    
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Deleting record failed: ${errorText}`);
+                }
+    
+                const data = await response.text();
+                console.log(data);
+    
+                setRecordings((prev) => prev.filter((_, i) => i !== recordingToDelete));
+                setDeleteModalVisible(false);
+                setRecordingToDelete(null);
+            } catch (error) {
+                console.error('Error deleting record:', error);
+            }
+        } else {
+            console.error('Recording to delete is not valid');
         }
     };
 
@@ -225,26 +318,30 @@ export default function MyRecordingScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={styles.recordings}>
-                {recordings.map((item, index) => (
-                    <Swipeable
-                        key={index}
-                        renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, index)}
-                    >
-                        <View style={styles.card}>
-                            <View style={styles.cardText}>
-                                <Text style={styles.cardTextTitle}>
-                                    {item.name}
-                                </Text>
-                                <Text style={styles.cardTime}>
-                                    {formatTime(isPlaying[index] ? positionMillis[index] || 0 : pausedPosition[index] || 0)} / {formatTime(item.duration || 0)}
-                                </Text>
+            {recordings.length === 0 ? (
+                    <Text style={styles.noRecordingsText}>Вы ничего не записали</Text>
+                ) : (
+                    recordings.map((item, index) => (
+                        <Swipeable
+                            key={index}
+                            renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, index)}
+                        >
+                            <View style={styles.card}>
+                                <View style={styles.cardText}>
+                                    <Text style={styles.cardTextTitle}>
+                                        {item.name}
+                                    </Text>
+                                    <Text style={styles.cardTime}>
+                                        {formatTime(isPlaying[index] ? positionMillis[index] || 0 : pausedPosition[index] || 0)} / {formatTime(item.duration || 0)}
+                                    </Text>
+                                </View>
+                                <TouchableOpacity onPress={() => isPlaying[index] ? pauseAudio(index) : playAudio(item.uri, index)}>
+                                    <AntDesign name={isPlaying[index] ? "pausecircle" : "play"} size={30} color="#777" />
+                                </TouchableOpacity>
                             </View>
-                            <TouchableOpacity onPress={() => isPlaying[index] ? pauseAudio(index) : playAudio(item.uri, index)}>
-                                <AntDesign name={isPlaying[index] ? "pausecircle" : "play"} size={30} color="#777" />
-                            </TouchableOpacity>
-                        </View>
-                    </Swipeable>
-                ))}
+                        </Swipeable>
+                    ))
+                )}
             </View>
             <Modal
                 animationType="slide"
@@ -424,9 +521,17 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     cardTextTitle: {
-        fontSize: 18,
+        fontSize: 16,
         color: '#5c5c5c',
         fontFamily: 'Comfortaa_400Regular',
+    },
+    noRecordingsText:{
+        marginTop:'3%',
+        fontSize: 20,
+        color: '#5c5c5c',
+        fontFamily: 'Comfortaa_400Regular',
+        width:"100%",
+        textAlign:'center'
     },
     cardTime: {
         fontSize: 14,
