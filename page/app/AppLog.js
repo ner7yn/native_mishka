@@ -12,6 +12,11 @@ import MyRecordingScreen from './MyRecordingScreen';
 import Song from './Sound/Song';
 import Nature from './Sound/Nature';
 import Animals from './Sound/Animals';
+import Lullabies from './Sound/Lullabies';
+import Training from './Sound/Training';
+import Riddles from './Sound/Riddles';
+import NewYear from './Sound/NewYear';
+import Noise from './Sound/Noise';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -24,6 +29,11 @@ function ReadySoundsStack() {
       <Stack.Screen name="Song" component={Song} options={{ headerShown: false }} />
       <Stack.Screen name="Nature" component={Nature} options={{ headerShown: false }} />
       <Stack.Screen name="Animals" component={Animals} options={{ headerShown: false }} />
+      <Stack.Screen name="Lullabies" component={Lullabies} options={{ headerShown: false }} />
+      <Stack.Screen name="Training" component={Training} options={{ headerShown: false }} />
+      <Stack.Screen name="Riddles" component={Riddles} options={{ headerShown: false }} />
+      <Stack.Screen name="Noise" component={Noise} options={{ headerShown: false }} />
+      <Stack.Screen name="NewYaer" component={NewYear} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

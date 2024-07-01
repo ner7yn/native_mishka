@@ -5,9 +5,12 @@ import { Audio } from 'expo-av';
 import { AntDesign } from '@expo/vector-icons';
 import { Button as PaperButton } from 'react-native-paper';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
-import { useAuth } from '../../context/AuthContext'; // Путь к вашему AuthContext
+import { useAuth } from '../../context/AuthContext';
+import Spinner from 'react-native-loading-spinner-overlay';
+import Toast from 'react-native-toast-message';
 
 export default function MyRecordingScreen({ navigation }) {
+    const [isLoading, setIsLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
@@ -183,8 +186,9 @@ export default function MyRecordingScreen({ navigation }) {
             type: 'audio/x-wav',
             name: newRecordingName + '.wav'
         });
-    
+        setIsLoading(true);
         try {
+
             const uploadResponse = await fetch('https://node-mishka.onrender.com/audio/upload', {
                 method: 'POST',
                 body: formData,
@@ -223,7 +227,9 @@ export default function MyRecordingScreen({ navigation }) {
             setRecordingTime(0);
         } catch (error) {
             console.error('Error uploading or creating record:', error);
-        }
+        }finally {
+            setIsLoading(false);
+          }
     };
     
 
@@ -298,6 +304,16 @@ export default function MyRecordingScreen({ navigation }) {
     
                 setRecordings((prev) => prev.filter((_, i) => i !== recordingToDelete));
                 setDeleteModalVisible(false);
+                Toast.show({
+                    type: 'success',
+                    position: 'top',
+                    text1: 'Запись удалена',
+                    text2: '',
+                    visibilityTime: 4000,
+                    autoHide: true,
+                    topOffset: 100,
+                    bottomOffset: 40,
+                  });
                 setRecordingToDelete(null);
             } catch (error) {
                 console.error('Error deleting record:', error);
@@ -317,6 +333,13 @@ export default function MyRecordingScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
+             <Spinner
+        visible={isLoading}
+        textContent={''}
+        textStyle={styles.spinnerTextStyle}
+        color='#6f9c3d'
+        overlayColor='rgba(255,255,255, 0.5)'
+      />
             <View style={styles.recordings}>
             {recordings.length === 0 ? (
                     <Text style={styles.noRecordingsText}>Вы ничего не записали</Text>
@@ -472,6 +495,7 @@ const styles = StyleSheet.create({
         padding: 0,
     },
     input: {
+        minWidth:200,
         width: '100%',
         backgroundColor: '#fff',
         marginTop: 10,

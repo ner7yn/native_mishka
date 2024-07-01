@@ -4,7 +4,6 @@ import { FontAwesome } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
 const { width, height } = Dimensions.get('window');
 
 export default function ReadySoundsScreen({ navigation }) {
@@ -40,16 +39,21 @@ export default function ReadySoundsScreen({ navigation }) {
     const cards = [
         { text: 'Сказки', icon: <FontAwesome name="book" size={200} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('fairyTales', { audioData: getFilteredData('сказка') }) },
         { text: 'Песенки', icon: <FontAwesome6 name="music" size={180} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Song', { audioData: getFilteredData('песня') }) },
+        { text: 'Загадки', icon: <FontAwesome name="question" size={220} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Song', { audioData: getFilteredData('закадка') }) },
         { text: 'Звук природы', icon: <MaterialIcons name="emoji-nature" size={200} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Nature', { audioData: getFilteredData('природа') }) },
         { text: 'Звуки животных', icon: <MaterialCommunityIcons name="dog" size={200} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Animals', { audioData: getFilteredData('животные') }) },
+        { text: 'Обучение', icon: <FontAwesome6 name="lightbulb" size={210} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Animals', { audioData: getFilteredData('обучение') }) },
+        { text: 'Колыбельные для сна', icon: <MaterialCommunityIcons name="sleep" size={180} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Animals', { audioData: getFilteredData('колыбельная') }) },
+        { text: 'Белый шум', icon: <MaterialCommunityIcons name="baby-face-outline" size={200} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Animals', { audioData: getFilteredData('шум') }) },
+        { text: 'Новый год', icon: <MaterialCommunityIcons name="gift" size={200} color="#a4ca79" style={styles.cardIcon} />, onPress: () => navigation.navigate('Animals', { audioData: getFilteredData('новый') }) },
     ];
 
     return (
         <View style={styles.container}>
             {loading ? (
-                <ActivityIndicator size="large" color="#0000ff" />
+                <ActivityIndicator size="large" color="#a4ca79" />
             ) : (
-                <ScrollView contentContainerStyle={{ alignItems: 'center', paddingBottom: 20 }}>
+                <ScrollView contentContainerStyle={{alignItems: 'center'}}>
                     <View style={{ marginVertical: '3%' }}>
                         {cards.map((card, index) => (
                             <TouchableOpacity
@@ -77,7 +81,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
-        alignItems: 'center',
         justifyContent: 'center'
     },
     card: {
@@ -100,7 +103,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Comfortaa_700Bold',
         fontSize: 20,
         color: "#fff",
-        width: '43%'
+        width: '80%'
     },
     cardIcon: {
         position: 'absolute',

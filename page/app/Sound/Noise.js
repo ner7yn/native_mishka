@@ -1,9 +1,9 @@
-import { Text, View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity,ScrollView } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { AntDesign } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 
-export default function FairyTales({ route }) {
+export default function Noise({ route }) {
     const { audioData } = route.params;
     const [sounds, setSounds] = useState([]);
     const [isPlaying, setIsPlaying] = useState({});

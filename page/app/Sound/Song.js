@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity,ScrollView } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { AntDesign } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -104,25 +104,27 @@ export default function Song({ route }) {
 
     return (
         <View style={styles.container}>
-            <View style={{ width: '100%', alignItems: 'center' }}>
-                <View style={{ marginBottom: '3%', width: '100%'}}>
-                    {audioData.map((item, index) => (
-                        <View key={index} style={styles.card}>
-                            <View style={styles.cardText}>
-                                <Text style={styles.cardTextTitle}>
-                                    {item.name}
-                                </Text>
-                                <Text style={styles.cardTime}>
-                                    {formatTime(isPlaying[index] ? positionMillis[index] || 0 : pausedPosition[index] || 0)} / {item.duration}
-                                </Text>
+            <ScrollView contentContainerStyle={{ width:"100%" }}>
+                <View style={{ width: '100%', alignItems: 'center' }}>
+                    <View style={{ marginBottom: '3%', width: '100%' }}>
+                        {audioData.map((item, index) => (
+                            <View key={index} style={styles.card}>
+                                <View style={styles.cardText}>
+                                    <Text style={styles.cardTextTitle}>
+                                        {item.name}
+                                    </Text>
+                                    <Text style={styles.cardTime}>
+                                        {formatTime(isPlaying[index] ? positionMillis[index] || 0 : pausedPosition[index] || 0)} / {item.duration}
+                                    </Text>
+                                </View>
+                                <TouchableOpacity onPress={() => isPlaying[index] ? pauseAudio(index) : playAudio(item.audioFile, index)}>
+                                    <AntDesign name={isPlaying[index] ? "pausecircle" : "play"} size={30} color="#777" />
+                                </TouchableOpacity>
                             </View>
-                            <TouchableOpacity onPress={() => isPlaying[index] ? pauseAudio(index) : playAudio(item.audioFile, index)}>
-                                <AntDesign name={isPlaying[index] ? "pausecircle" : "play"} size={30} color="#777" />
-                            </TouchableOpacity>
-                        </View>
-                    ))}
+                        ))}
+                    </View>
                 </View>
-            </View>
+            </ScrollView>
         </View>
     );
 }
@@ -131,8 +133,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
-        alignItems: 'center',
-        paddingHorizontal: '1%'
     },
     card: {
         height: 60,
@@ -143,17 +143,17 @@ const styles = StyleSheet.create({
         borderBottomColor: '#ccc',
         borderBottomWidth: 1
     },
-    cardText:{
+    cardText: {
         gap: 10
     },
-    cardTextTitle:{ 
-        fontFamily: 'Comfortaa_700Bold', 
-        fontSize: 16, 
-        color: "#5c5c5c" 
+    cardTextTitle: {
+        fontFamily: 'Comfortaa_700Bold',
+        fontSize: 16,
+        color: "#5c5c5c"
     },
-    cardTime:{ 
-        fontFamily: 'Comfortaa_700Bold', 
-        fontSize: 12, 
-        color: "#bbb" 
+    cardTime: {
+        fontFamily: 'Comfortaa_700Bold',
+        fontSize: 12,
+        color: "#bbb"
     }
 });
