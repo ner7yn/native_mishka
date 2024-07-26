@@ -1,5 +1,5 @@
 // App.js
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Comfortaa_300Light, Comfortaa_400Regular, Comfortaa_500Medium, Comfortaa_600SemiBold, Comfortaa_700Bold } from '@expo-google-fonts/comfortaa';
@@ -29,6 +29,16 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
 
 const AppContent = () => {
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const initialize = async () => {
+      // Initialize other app settings if needed
+      setIsLoading(false);
+    };
+
+    initialize();
+  }, []);
 
   let [fontsLoaded, error] = useFonts({
     Comfortaa_300Light,
@@ -80,6 +90,10 @@ const AppContent = () => {
       BackgroundFetch.unregisterTaskAsync(BACKGROUND_FETCH_TASK);
     };
   }, []);
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
 
   if (error) {
     return <Text>Error loading fonts</Text>;

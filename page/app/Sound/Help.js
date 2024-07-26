@@ -5,94 +5,61 @@ import { Audio } from 'expo-av';
 
 export default function Training({ route }) {
     const { audioData } = route.params;
-    const [sounds, setSounds] = useState([]);
+    const sounds = useRef([]);
     const [isPlaying, setIsPlaying] = useState({});
     const [positionMillis, setPositionMillis] = useState({});
     const [pausedPosition, setPausedPosition] = useState({});
-    const intervalRef = useRef({});
+    const currentIndex = useRef(null);
 
-
-
-    useEffect(() => {
-        audioData.forEach((item, index) => {
-            if (formatTime(positionMillis[index]) === item.duration && isPlaying[index]) {
-                setIsPlaying(prev => ({ ...prev, [index]: false }));
-                setPositionMillis(prev => ({ ...prev, [index]: 0 }));
-                setPausedPosition(prev => ({ ...prev, [index]: 0 }));
-            }
-        });
-    }, [positionMillis, isPlaying, audioData]);
-
-    const playAudio = async (url, index) => {
-        if (sounds[index]) {
-            await sounds[index].unloadAsync();
+    const playAudio = async (uri, index) => {
+        if (sounds.current[index]) {
+            await sounds.current[index].unloadAsync();
         }
         try {
-            const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: false }, status => onPlaybackStatusUpdate(status, index));
-            const newSounds = [...sounds];
-            newSounds[index] = sound;
-            setSounds(newSounds);
+            const { sound } = await Audio.Sound.createAsync({ uri: uri }, { shouldPlay: false }, status => onPlaybackStatusUpdate(status, index));
+            sounds.current[index] = sound;
             setIsPlaying(prev => ({ ...prev, [index]: true }));
             await sound.playFromPositionAsync(pausedPosition[index] || 0);
+            console.log(`Playing audio at index ${index}, starting from position ${pausedPosition[index] || 0}`);
+            currentIndex.current = index; // Обновляем текущий индекс
         } catch (error) {
             console.error('Error playing audio:', error);
         }
     };
-
+    
     const pauseAudio = async (index) => {
-        if (sounds[index]) {
-            await sounds[index].pauseAsync();
-            setPausedPosition(prev => ({ ...prev, [index]: positionMillis[index] || 0 }));
+        if (sounds.current[index]) {
+            await sounds.current[index].pauseAsync();
+            const status = await sounds.current[index].getStatusAsync();
+            setPausedPosition(prev => ({ ...prev, [index]: status.positionMillis }));
             setIsPlaying(prev => ({ ...prev, [index]: false }));
+            console.log(`Paused audio at index ${index}, position saved: ${status.positionMillis}`);
+            currentIndex.current = index; // Обновляем текущий индекс
         }
     };
-
-    const onPlaybackStatusUpdate = (status, index) => {
-        if (status.isPlaying) {
-            setPositionMillis(prev => ({ ...prev, [index]: status.positionMillis }));
-        } else if (status.didJustFinish) {
-            setIsPlaying(prev => ({ ...prev, [index]: false }));
-            setPositionMillis(prev => ({ ...prev, [index]: 0 }));
-            setPausedPosition(prev => ({ ...prev, [index]: 0 }));
-        }
-    };
-
+    
     useEffect(() => {
-        audioData.forEach((_, index) => {
+        const interval = setInterval(async () => {
+            const index = currentIndex.current;
             if (isPlaying[index]) {
-                intervalRef.current[index] = setInterval(() => {
-                    setPositionMillis(prev => ({ ...prev, [index]: (prev[index] || 0) + 1000 }));
-                }, 1000);
-            } else {
-                clearInterval(intervalRef.current[index]);
+                const status = await sounds.current[index].getStatusAsync();
+                onPlaybackStatusUpdate(status, index);
+                setPositionMillis((prev => ({ ...prev, [index]: status.positionMillis })));
             }
-        });
-
-        return () => {
-            audioData.forEach((_, index) => {
-                clearInterval(intervalRef.current[index]);
-            });
-        };
-    }, [isPlaying, audioData]);
-
-    useEffect(() => {
-        return () => {
-            sounds.forEach(sound => {
-                if (sound) {
-                    sound.unloadAsync();
-                }
-            });
-        };
-    }, [sounds]);
-
-    useEffect(() => {
-        audioData.forEach((_, index) => {
-            if (positionMillis[index] === 0 && isPlaying[index]) {
-                setIsPlaying(prev => ({ ...prev, [index]: false }));
-            }
-        });
-    }, [positionMillis, isPlaying, audioData]);
-
+        }, 1000);
+    
+        return () => clearInterval(interval);
+    }, [isPlaying]);
+    
+    const onPlaybackStatusUpdate = (status, index) => {
+        console.log(`onPlaybackStatusUpdate called for index ${index} with status:`, status);
+        if (status.durationMillis === status.positionMillis) {
+            console.log(`Audio at index ${index} finished playing`);
+            setIsPlaying(prev => ({ ...prev, [index]: false }));
+            setPausedPosition(prev => ({ ...prev, [index]: 0 }));
+            setPositionMillis((prev => ({ ...prev, [index]: 0 })));
+        }
+    };
     const formatTime = (millis) => {
         if (isNaN(millis)) {
             return '0:00';
@@ -101,7 +68,7 @@ export default function Training({ route }) {
         const seconds = ((millis % 60000) / 1000).toFixed(0);
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     };
-
+    
     return (
         <View style={styles.container}>
             <ScrollView contentContainerStyle={{ width:"100%" }}>

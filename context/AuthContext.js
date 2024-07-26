@@ -1,6 +1,6 @@
 // AuthContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 const AuthContext = createContext();
 
@@ -10,12 +10,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkStoredUser = async () => {
       try {
-        const storedUser = await AsyncStorage.getItem('user');
+        console.log('Checking stored user...');
+        const storedUser = await SecureStore.getItemAsync('user');
         if (storedUser) {
+          console.log('User found in SecureStore:', storedUser);
           setUser(JSON.parse(storedUser));
+        } else {
+          console.log('No user found in SecureStore');
         }
       } catch (error) {
-        console.error('Error retrieving user from AsyncStorage', error);
+        console.error('Error retrieving user from SecureStore', error);
       }
     };
 
@@ -24,19 +28,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (userData) => {
     try {
-      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      await SecureStore.setItemAsync('user', JSON.stringify(userData));
       setUser(userData);
     } catch (error) {
-      console.error('Error storing user in AsyncStorage', error);
+      console.error('Error storing user in SecureStore', error);
     }
   };
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem('user');
+      await SecureStore.deleteItemAsync('user');
       setUser(null);
     } catch (error) {
-      console.error('Error removing user from AsyncStorage', error);
+      console.error('Error removing user from SecureStore', error);
     }
   };
 

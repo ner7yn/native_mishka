@@ -1,4 +1,4 @@
-import { Text, View, TextInput, StyleSheet, Alert } from 'react-native';
+import { Text, View, TextInput, StyleSheet} from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button as PaperButton, Appbar } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';

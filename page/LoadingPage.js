@@ -1,4 +1,4 @@
-import { Text, View, Image } from 'react-native';
+import {View, Image } from 'react-native';
 import React, { useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
 
@@ -18,7 +18,7 @@ export default function LoadingPage({ navigation }) {
         color='#6f9c3d'
         overlayColor="rgba(0, 0, 0, 0)"
       />
-      <Text style={{ color: "#6f9c3d", fontFamily: 'Roboto_500Medium', fontSize: 30 }}>Добро пожаловать</Text>
+      {/* <Text style={{ color: "#6f9c3d", fontFamily: 'Roboto_500Medium', fontSize: 30 }}>Добро пожаловать</Text> */}
     </View>
   );
 }

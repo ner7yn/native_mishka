@@ -2,17 +2,27 @@ import React from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext'; // Путь к вашему AuthContext
+import * as LinkingExpo from 'expo-linking';
 
 export default function ProfileScreen({ navigation }) {
     const { logout } = useAuth();
 
-    const email = 'ner7yn@gmail.com';
+    const email = 'besFriends@yandex.ru';
 
     const handlePress = async () => {
-        const canOpen = await Linking.canOpenURL(`mailto:${email}`);
+        const mailtoUrl = `mailto:${email}`;
+        console.log('Trying to open URL:', mailtoUrl);
+
+        const canOpen = await LinkingExpo.canOpenURL(mailtoUrl);
+        console.log('Can open URL:', canOpen);
 
         if (canOpen) {
-            await Linking.openURL(`mailto:${email}`);
+            try {
+                await LinkingExpo.openURL(mailtoUrl);
+            } catch (error) {
+                console.error('Failed to open mailto URL:', error);
+                Alert.alert('Не удалось открыть почтовый клиент');
+            }
         } else {
             Alert.alert('Не удалось открыть почтовый клиент');
         }

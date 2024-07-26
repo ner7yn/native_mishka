@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, TextInput, Modal, Button } from 'react-native';
+import { Text, View, TouchableOpacity, StyleSheet, TextInput, Modal, ScrollView } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { AntDesign } from '@expo/vector-icons';
@@ -17,10 +17,9 @@ export default function MyRecordingScreen({ navigation }) {
     const [recordings, setRecordings] = useState([]);
     const recording = useRef(null);
     const [isPlaying, setIsPlaying] = useState({});
-    const [positionMillis, setPositionMillis] = useState({});
     const [pausedPosition, setPausedPosition] = useState({});
+    const [positionMillis, setPositionMillis] = useState({});
     const sounds = useRef([]);
-    const intervalRef = useRef({});
     const [modalVisible, setModalVisible] = useState(false);
     const [newRecordingName, setNewRecordingName] = useState('');
     const [uri, setUri] = useState('');
@@ -30,13 +29,15 @@ export default function MyRecordingScreen({ navigation }) {
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [recordingToDelete, setRecordingToDelete] = useState(null);
     const { user } = useAuth();
+    const [shouldFetchRecords, setShouldFetchRecords] = useState(true);
 
     useEffect(() => {
         fetchUserRecords();
-    }, [recordings]);
+    }, [shouldFetchRecords]);
 
     const fetchUserRecords = async () => {
         try {
+            setIsLoading(true);
             const response = await fetch('https://node-mishka.onrender.com/record/user-records', {
                 method: 'POST',
                 headers: {
@@ -52,11 +53,11 @@ export default function MyRecordingScreen({ navigation }) {
 
             const records = await response.json();
             setRecordings(records);
+            setIsLoading(false);
         } catch (error) {
             console.error('Error fetching user records:', error);
         }
     };
-
 
     useEffect(() => {
         return () => {
@@ -70,44 +71,6 @@ export default function MyRecordingScreen({ navigation }) {
             });
         };
     }, []);
-
-    useEffect(() => {
-        recordings.forEach((item, index) => {
-            if (formatTime(positionMillis[index]) === formatTime(item.duration) && isPlaying[index]) {
-                setIsPlaying(prev => ({ ...prev, [index]: false }));
-                setPositionMillis(prev => ({ ...prev, [index]: 0 }));
-                setPausedPosition(prev => ({ ...prev, [index]: 0 }));
-            }
-        });
-    }, [positionMillis, isPlaying, recordings]);
-
-    useEffect(() => {
-        recordings.forEach((_, index) => {
-            if (isPlaying[index]) {
-                intervalRef.current[index] = setInterval(() => {
-                    setPositionMillis(prev => ({ ...prev, [index]: (prev[index] || 0) + 1000 }));
-                }, 1000);
-            } else {
-                clearInterval(intervalRef.current[index]);
-            }
-        });
-
-        return () => {
-            recordings.forEach((_, index) => {
-                clearInterval(intervalRef.current[index]);
-            });
-        };
-    }, [isPlaying, recordings]);
-
-    useEffect(() => {
-        return () => {
-            sounds.current.forEach(sound => {
-                if (sound) {
-                    sound.unloadAsync();
-                }
-            });
-        };
-    }, [sounds]);
 
     const startRecording = async () => {
         try {
@@ -179,7 +142,7 @@ export default function MyRecordingScreen({ navigation }) {
             alert('Please enter a recording name');
             return;
         }
-    
+
         const formData = new FormData();
         formData.append('audioFile', {
             uri: uri,
@@ -188,7 +151,6 @@ export default function MyRecordingScreen({ navigation }) {
         });
         setIsLoading(true);
         try {
-
             const uploadResponse = await fetch('https://node-mishka.onrender.com/audio/upload', {
                 method: 'POST',
                 body: formData,
@@ -196,15 +158,15 @@ export default function MyRecordingScreen({ navigation }) {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-    
+
             if (!uploadResponse.ok) {
                 const errorText = await uploadResponse.text();
                 throw new Error(`Upload failed: ${errorText}`);
             }
-    
+
             const uploadData = await uploadResponse.json();
             const { audioFile } = uploadData;
-    
+
             const createResponse = await fetch('https://node-mishka.onrender.com/record/create', {
                 method: 'POST',
                 headers: {
@@ -213,26 +175,26 @@ export default function MyRecordingScreen({ navigation }) {
                 body: JSON.stringify({
                     name: newRecordingName,
                     audioFile: audioFile,
-                    duration: durationMillis, // Используем durationMillis из состояния
+                    duration: durationMillis,
                     user: user.userId
                 })
             });
             const createData = await createResponse.text();
-        console.log('Server response:', createData);
-            console.log(createData);
-    
+            console.log('Server response:', createData);
+
             setRecordings((prev) => [...prev, { uri: uri, name: newRecordingName, duration: durationMillis }]);
             setModalVisible(false);
             setNewRecordingName('');
             setRecordingTime(0);
+            setShouldFetchRecords(true); // Устанавливаем флаг для обновления записей
         } catch (error) {
             console.error('Error uploading or creating record:', error);
-        }finally {
+        } finally {
             setIsLoading(false);
-          }
+        }
     };
-    
 
+    const currentIndex = useRef(null);
 
     const playAudio = async (uri, index) => {
         if (sounds.current[index]) {
@@ -243,6 +205,8 @@ export default function MyRecordingScreen({ navigation }) {
             sounds.current[index] = sound;
             setIsPlaying(prev => ({ ...prev, [index]: true }));
             await sound.playFromPositionAsync(pausedPosition[index] || 0);
+            console.log(`Playing audio at index ${index}, starting from position ${pausedPosition[index] || 0}`);
+            currentIndex.current = index; // Обновляем текущий индекс
         } catch (error) {
             console.error('Error playing audio:', error);
         }
@@ -251,18 +215,34 @@ export default function MyRecordingScreen({ navigation }) {
     const pauseAudio = async (index) => {
         if (sounds.current[index]) {
             await sounds.current[index].pauseAsync();
-            setPausedPosition(prev => ({ ...prev, [index]: positionMillis[index] || 0 }));
+            const status = await sounds.current[index].getStatusAsync();
+            setPausedPosition(prev => ({ ...prev, [index]: status.positionMillis }));
             setIsPlaying(prev => ({ ...prev, [index]: false }));
+            console.log(`Paused audio at index ${index}, position saved: ${status.positionMillis}`);
+            currentIndex.current = index; // Обновляем текущий индекс
         }
     };
 
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            const index = currentIndex.current;
+            if (isPlaying[index]) {
+                const status = await sounds.current[index].getStatusAsync();
+                onPlaybackStatusUpdate(status, index);
+                setPositionMillis((prev => ({ ...prev, [index]: status.positionMillis })));
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [isPlaying]);
+
     const onPlaybackStatusUpdate = (status, index) => {
-        if (status.isPlaying) {
-            setPositionMillis(prev => ({ ...prev, [index]: status.positionMillis }));
-        } else if (status.didJustFinish) {
+        console.log(`onPlaybackStatusUpdate called for index ${index} with status:`, status);
+        if (status.durationMillis === status.positionMillis) {
+            console.log(`Audio at index ${index} finished playing`);
             setIsPlaying(prev => ({ ...prev, [index]: false }));
-            setPositionMillis(prev => ({ ...prev, [index]: 0 }));
             setPausedPosition(prev => ({ ...prev, [index]: 0 }));
+            setPositionMillis((prev => ({ ...prev, [index]: 0 })));
         }
     };
 
@@ -293,15 +273,15 @@ export default function MyRecordingScreen({ navigation }) {
                 const response = await fetch(`https://node-mishka.onrender.com/record/delete/${recordings[recordingToDelete]._id}`, {
                     method: 'DELETE'
                 });
-    
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Deleting record failed: ${errorText}`);
                 }
-    
+
                 const data = await response.text();
                 console.log(data);
-    
+
                 setRecordings((prev) => prev.filter((_, i) => i !== recordingToDelete));
                 setDeleteModalVisible(false);
                 Toast.show({
@@ -313,7 +293,7 @@ export default function MyRecordingScreen({ navigation }) {
                     autoHide: true,
                     topOffset: 100,
                     bottomOffset: 40,
-                  });
+                });
                 setRecordingToDelete(null);
             } catch (error) {
                 console.error('Error deleting record:', error);
@@ -330,117 +310,121 @@ export default function MyRecordingScreen({ navigation }) {
             </TouchableOpacity>
         );
     };
-
     return (
         <View style={styles.container}>
-             <Spinner
-        visible={isLoading}
-        textContent={''}
-        textStyle={styles.spinnerTextStyle}
-        color='#6f9c3d'
-        overlayColor='rgba(255,255,255, 0.5)'
-      />
-            <View style={styles.recordings}>
-            {recordings.length === 0 ? (
-                    <Text style={styles.noRecordingsText}>Вы ничего не записали</Text>
-                ) : (
-                    recordings.map((item, index) => (
-                        <Swipeable
-                            key={index}
-                            renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, index)}
-                        >
-                            <View style={styles.card}>
-                                <View style={styles.cardText}>
-                                    <Text style={styles.cardTextTitle}>
-                                        {item.name}
-                                    </Text>
-                                    <Text style={styles.cardTime}>
-                                        {formatTime(isPlaying[index] ? positionMillis[index] || 0 : pausedPosition[index] || 0)} / {formatTime(item.duration || 0)}
-                                    </Text>
-                                </View>
-                                <TouchableOpacity onPress={() => isPlaying[index] ? pauseAudio(index) : playAudio(item.uri, index)}>
-                                    <AntDesign name={isPlaying[index] ? "pausecircle" : "play"} size={30} color="#777" />
-                                </TouchableOpacity>
+
+            <ScrollView contentContainerStyle={{ width: "100%" }}>
+                <Spinner
+                    visible={isLoading}
+                    textContent={''}
+                    textStyle={styles.spinnerTextStyle}
+                    color='#6f9c3d'
+                    overlayColor='rgba(255,255,255, 0.5)'
+                />
+                <View style={styles.recordings}>
+                        {
+                            recordings.length === 0 ? (
+                                <Text style={styles.noRecordingsText}>Вы ничего не записали</Text>
+                            ) : (
+                                recordings.slice().reverse().map((item, index) => (
+                                    <Swipeable
+                                        key={index}
+                                        renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, index)}
+                                    >
+                                        <View style={styles.card}>
+                                            <View style={styles.cardText}>
+                                                <Text style={styles.cardTextTitle}>
+                                                    {item.name}
+                                                </Text>
+                                                <Text style={styles.cardTime}>
+                                                    {formatTime(isPlaying[index] ? positionMillis[index] || 0 : pausedPosition[index] || 0)} / {formatTime(item.duration)}
+                                                </Text>
+                                            </View>
+                                            <TouchableOpacity onPress={() => isPlaying[index] ? pauseAudio(index) : playAudio(item.audioFile, index)}>
+                                                <AntDesign name={isPlaying[index] ? "pausecircle" : "play"} size={30} color="#777" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </Swipeable>
+                                ))
+                            )
+                        }
+                </View>
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => {
+                        setModalVisible(!modalVisible);
+                    }}
+                >
+                    <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                            <TextInput
+                                selectionColor="#6f9c3d"
+                                style={[
+                                    styles.input,
+                                    isFocused && styles.inputFocused
+                                ]}
+                                placeholder="Название"
+                                placeholderTextColor="#a9a9a9"
+                                value={newRecordingName}
+                                onChangeText={setNewRecordingName}
+                                onFocus={() => setIsFocused(true)}
+                                onBlur={() => setIsFocused(false)}
+                            />
+                            <View style={styles.buttonContainer}>
+                                <PaperButton
+                                    mode="outlined"
+                                    style={[styles.button, { backgroundColor: "#6f9c3d", borderWidth: 0, marginBottom: '2%' }]}
+                                    labelStyle={{ color: '#ffff', fontSize: 16, fontFamily: 'Comfortaa_400Regular' }}
+                                    onPress={saveRecording}>
+                                    Сохранить
+                                </PaperButton>
+                                <PaperButton
+                                    mode="outlined"
+                                    style={[styles.button, { borderWidth: 0, marginBottom: '2%' }]}
+                                    labelStyle={{ color: '#6f9c3d', fontSize: 16, fontFamily: 'Comfortaa_400Regular' }}
+                                    onPress={() => {
+                                        setModalVisible(false);
+                                        setRecordingTime(0); // Сброс recordingTime в 0 при нажатии кнопки "Отмена"
+                                    }}>
+                                    Отмена
+                                </PaperButton>
                             </View>
-                        </Swipeable>
-                    ))
-                )}
-            </View>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => {
-                    setModalVisible(!modalVisible);
-                }}
-            >
-                <View style={styles.centeredView}>
-                    <View style={styles.modalView}>
-                        <TextInput
-                            selectionColor="#6f9c3d"
-                            style={[
-                                styles.input,
-                                isFocused && styles.inputFocused
-                            ]}
-                            placeholder="Название"
-                            placeholderTextColor="#a9a9a9"
-                            value={newRecordingName}
-                            onChangeText={setNewRecordingName}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                        />
-                        <View style={styles.buttonContainer}>
-                            <PaperButton
-                                mode="outlined"
-                                style={[styles.button, { backgroundColor: "#6f9c3d", borderWidth: 0, marginBottom: '2%' }]}
-                                labelStyle={{ color: '#ffff', fontSize: 16, fontFamily: 'Comfortaa_400Regular' }}
-                                onPress={saveRecording}>
-                                Сохранить
-                            </PaperButton>
-                            <PaperButton
-                                mode="outlined"
-                                style={[styles.button, { borderWidth: 0, marginBottom: '2%' }]}
-                                labelStyle={{ color: '#6f9c3d', fontSize: 16, fontFamily: 'Comfortaa_400Regular' }}
-                                onPress={() => {
-                                    setModalVisible(false);
-                                    setRecordingTime(0); // Сброс recordingTime в 0 при нажатии кнопки "Отмена"
-                                }}>
-                                Отмена
-                            </PaperButton>
                         </View>
                     </View>
-                </View>
-            </Modal>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={deleteModalVisible}
-                onRequestClose={() => {
-                    setDeleteModalVisible(!deleteModalVisible);
-                }}
-            >
-                <View style={styles.centeredView}>
-                    <View style={styles.modalView}>
-                        <Text style={styles.modalText}>Вы уверены, что хотите удалить эту запись?</Text>
-                        <View style={styles.buttonContainer}>
-                            <PaperButton
-                                mode="outlined"
-                                style={[styles.button, { backgroundColor: "#6f9c3d", borderWidth: 0, marginBottom: '2%' }]}
-                                labelStyle={{ color: '#ffff', fontSize: 18, fontFamily: 'Comfortaa_400Regular' }}
-                                onPress={deleteRecording}>
-                                Да
-                            </PaperButton>
-                            <PaperButton
-                                mode="outlined"
-                                style={[styles.button, { borderWidth: 0, marginBottom: '2%' }]}
-                                labelStyle={{ color: '#6f9c3d', fontSize: 18, fontFamily: 'Comfortaa_400Regular' }}
-                                onPress={() => setDeleteModalVisible(false)}>
-                                Нет
-                            </PaperButton>
+                </Modal>
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={deleteModalVisible}
+                    onRequestClose={() => {
+                        setDeleteModalVisible(!deleteModalVisible);
+                    }}
+                >
+                    <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                            <Text style={styles.modalText}>Вы уверены, что хотите удалить эту запись?</Text>
+                            <View style={styles.buttonContainer}>
+                                <PaperButton
+                                    mode="outlined"
+                                    style={[styles.button, { backgroundColor: "#6f9c3d", borderWidth: 0, marginBottom: '2%' }]}
+                                    labelStyle={{ color: '#ffff', fontSize: 18, fontFamily: 'Comfortaa_400Regular' }}
+                                    onPress={deleteRecording}>
+                                    Да
+                                </PaperButton>
+                                <PaperButton
+                                    mode="outlined"
+                                    style={[styles.button, { borderWidth: 0, marginBottom: '2%' }]}
+                                    labelStyle={{ color: '#6f9c3d', fontSize: 18, fontFamily: 'Comfortaa_400Regular' }}
+                                    onPress={() => setDeleteModalVisible(false)}>
+                                    Нет
+                                </PaperButton>
+                            </View>
                         </View>
                     </View>
-                </View>
-            </Modal>
+                </Modal>
+            </ScrollView>
             <View style={styles.bottomBar}>
                 {isRecording ? (
                     isPaused ? (
@@ -464,6 +448,7 @@ export default function MyRecordingScreen({ navigation }) {
                 )}
                 {isRecording && <Text style={styles.recordingTime}>{formatTime(recordingTime)}</Text>}
             </View>
+
         </View>
     );
 }
@@ -495,7 +480,7 @@ const styles = StyleSheet.create({
         padding: 0,
     },
     input: {
-        minWidth:200,
+        minWidth: 200,
         width: '100%',
         backgroundColor: '#fff',
         marginTop: 10,
@@ -527,7 +512,7 @@ const styles = StyleSheet.create({
     bottomBar: {
         flexDirection: 'row',
         justifyContent: 'center',
-        alignItems:'center',
+        alignItems: 'center',
         position: 'absolute',
         bottom: 20,
     },
@@ -549,13 +534,13 @@ const styles = StyleSheet.create({
         color: '#5c5c5c',
         fontFamily: 'Comfortaa_400Regular',
     },
-    noRecordingsText:{
-        marginTop:'3%',
+    noRecordingsText: {
+        marginTop: '3%',
         fontSize: 20,
         color: '#5c5c5c',
         fontFamily: 'Comfortaa_400Regular',
-        width:"100%",
-        textAlign:'center'
+        width: "100%",
+        textAlign: 'center'
     },
     cardTime: {
         fontSize: 14,
