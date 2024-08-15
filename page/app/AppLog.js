@@ -6,7 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import ProfileScreen from './ProfileScreen';
 import ReadySoundsScreen from './Sound/ReadySoundsScreen';
-import FairyTales from './Sound/FairyTales';
+import FairyTales from './Sound/fairyTales';
 import MyRecordingScreen from './MyRecordingScreen';
 import Help from './Sound/Help';
 import Riddles from './Sound/Riddles';
