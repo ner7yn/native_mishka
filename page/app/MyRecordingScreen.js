@@ -312,8 +312,9 @@ export default function MyRecordingScreen({ navigation }) {
     };
     return (
         <View style={styles.container}>
+            <Text style={styles.soon}>Скоро появится</Text>
 
-            <ScrollView contentContainerStyle={{ width: "100%" }}>
+            {/* <ScrollView contentContainerStyle={{ width: "100%" }}>
                 <Spinner
                     visible={isLoading}
                     textContent={''}
@@ -447,7 +448,8 @@ export default function MyRecordingScreen({ navigation }) {
                     </TouchableOpacity>
                 )}
                 {isRecording && <Text style={styles.recordingTime}>{formatTime(recordingTime)}</Text>}
-            </View>
+            </View> */}
+
 
         </View>
     );
@@ -458,8 +460,19 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
         alignItems: 'center',
-        justifyContent: 'flex-end',
+        justifyContent: 'center',
         paddingBottom: 20,
+    },
+    soon:{
+        fontSize:30,
+        fontFamily: 'Comfortaa_400Regular',
+        color: '#5c5c5c',
+        backgroundColor:'rgba(0,0,0,0.2)',
+        width:'100%',
+        height:'100%',
+        display:'flex',
+        justifyContent:'center',
+        alignItems:'center'
     },
     recordings: {
         flex: 1,
