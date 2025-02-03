@@ -13,7 +13,7 @@ export default function ReadySoundsScreen({ navigation }) {
     const [modalVisible, setModalVisible] = useState(false);
 
     useEffect(() => {
-        fetch('https://mishka-l3tq.onrender.com/audio/all')
+        fetch('https://node-mishka.onrender.com/audio/all')
             .then(response => response.json())
             .then(data => {
                 setAudioData(data);

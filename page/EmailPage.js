@@ -26,7 +26,7 @@ export default function EmailPage({ navigation }) {
   const sendEmailToServer = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('https://mishka-l3tq.onrender.com/auth/generate-code', {
+      const response = await fetch('https://node-mishka.onrender.com/auth/generate-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'Comfortaa_700Bold',
-    fontSize: 35,
+    fontSize: 33,
     color: "#6f9c3d",
     marginBottom: 5,
     textAlign: 'center',

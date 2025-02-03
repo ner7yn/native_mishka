@@ -46,7 +46,7 @@ export default function ConfirmationPage({ navigation, route }) {
     const codeString = getCodeString();
     setIsLoading(true);
     try {
-      const response = await fetch('https://mishka-l3tq.onrender.com/auth/verify-code', {
+      const response = await fetch('https://node-mishka.onrender.com/auth/verify-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,8 +178,8 @@ const styles = StyleSheet.create({
     marginVertical: '15%'
   },
   input: {
-    width: 40,
-    height: 40,
+    width: 45,
+    height: 45,
     borderWidth: 1,
     borderColor: '#d9d9d9',
     borderRadius: 5,
