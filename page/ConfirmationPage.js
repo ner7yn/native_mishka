@@ -62,7 +62,7 @@ export default function ConfirmationPage({ navigation, route }) {
           position: 'top',
           text1: 'Ошибка кода',
           text2: 'Код не совпадает. Пожалуйста, проверьте еще раз.',
-          visibilityTime: 4000,
+          visibilityTime: 3000,
           autoHide: true,
           topOffset: 100,
           bottomOffset: 40,

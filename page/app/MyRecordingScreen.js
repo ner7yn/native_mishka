@@ -29,7 +29,7 @@ export default function MyRecordingScreen({ navigation }) {
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [recordingToDelete, setRecordingToDelete] = useState(null);
     const { user } = useAuth();
-    const [shouldFetchRecords, setShouldFetchRecords] = useState(true);
+    const [shouldFetchRecords, setShouldFetchRecords] = useState(false);
 
     useEffect(() => {
         fetchUserRecords();
@@ -166,8 +166,9 @@ export default function MyRecordingScreen({ navigation }) {
 
             const uploadData = await uploadResponse.json();
             const { audioFile } = uploadData;
+            console.log("аудио файл",audioFile)
 
-            const createResponse = await fetch('https://node-mishka.onrender.com/record/create', {
+            const createResponse = await fetch('https://node-mishka.onrender.com/record/create_record', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -183,6 +184,16 @@ export default function MyRecordingScreen({ navigation }) {
             console.log('Server response:', createData);
 
             setRecordings((prev) => [...prev, { uri: uri, name: newRecordingName, duration: durationMillis }]);
+            Toast.show({
+                type: 'success',
+                position: 'top',
+                text1: 'Создание',
+                text2: `Запись ${newRecordingName} создана успешно`,
+                visibilityTime: 3000,
+                autoHide: true,
+                topOffset: 100,
+                bottomOffset: 40,
+            });
             setModalVisible(false);
             setNewRecordingName('');
             setRecordingTime(0);
@@ -268,7 +279,6 @@ export default function MyRecordingScreen({ navigation }) {
     };
 
     const deleteRecording = async () => {
-        if (recordingToDelete !== null && recordings[recordingToDelete]?._id) {
             try {
                 const response = await fetch(`https://node-mishka.onrender.com/record/delete/${recordings[recordingToDelete]._id}`, {
                     method: 'DELETE'
@@ -281,26 +291,12 @@ export default function MyRecordingScreen({ navigation }) {
 
                 const data = await response.text();
                 console.log(data);
-
                 setRecordings((prev) => prev.filter((_, i) => i !== recordingToDelete));
                 setDeleteModalVisible(false);
-                Toast.show({
-                    type: 'success',
-                    position: 'top',
-                    text1: 'Запись удалена',
-                    text2: '',
-                    visibilityTime: 4000,
-                    autoHide: true,
-                    topOffset: 100,
-                    bottomOffset: 40,
-                });
                 setRecordingToDelete(null);
             } catch (error) {
                 console.error('Error deleting record:', error);
             }
-        } else {
-            console.error('Recording to delete is not valid');
-        }
     };
 
     const renderRightActions = (progress, dragX, index) => {
