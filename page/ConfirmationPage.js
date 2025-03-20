@@ -12,30 +12,62 @@ export default function ConfirmationPage({ navigation, route }) {
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef([]);
-  const { login } = useAuth(); // Используем функцию login из контекста аутентификации
+  const { login } = useAuth();
 
   const handleChange = (index, value) => {
     const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
 
-    if (value && index < 5) {
-      setFocusedIndex(index + 1);
-      inputRefs.current[index + 1]?.focus();
+    // Если длина value больше 1, значит это вставка
+    if (value.length > 1) {
+      // Оставляем только цифры
+      const insertedCode = value.replace(/\D/g, '').slice(0, 6).split('');
+      insertedCode.forEach((char, i) => {
+        if (i < 6) {
+          newCode[i] = char;
+        }
+      });
+      setCode(newCode);
+
+      // Устанавливаем фокус на последнюю ячейку
+      const lastFilledIndex = insertedCode.length - 1;
+      setFocusedIndex(lastFilledIndex);
+      inputRefs.current[lastFilledIndex]?.focus();
+    } else {
+      // Обычный ввод одного символа
+      if (/^\d*$/.test(value)) { // Проверяем, что введённый символ — цифра
+        newCode[index] = value;
+        setCode(newCode);
+
+        // Переход к следующему полю, если введён символ
+        if (value && index < 5) {
+          setFocusedIndex(index + 1);
+          inputRefs.current[index + 1]?.focus();
+        }
+      }
     }
   };
 
   const handleKeyPress = (index, key) => {
-    if (key === 'Backspace' && !code[index] && index > 0) {
-      setFocusedIndex(index - 1);
-      inputRefs.current[index - 1]?.focus();
+    if (key === 'Backspace' && index > 0) {
+      const newCode = [...code];
+      if (!newCode[index]) {
+        // Если текущее поле пустое, удаляем символ в предыдущем поле
+        newCode[index - 1] = '';
+        setCode(newCode);
+        setFocusedIndex(index - 1);
+        inputRefs.current[index - 1]?.focus();
+      } else {
+        // Если текущее поле не пустое, просто удаляем символ в нём
+        newCode[index] = '';
+        setCode(newCode);
+      }
     }
   };
 
   useEffect(() => {
     setCode(['', '', '', '', '', '']);
     setFocusedIndex(0);
-    inputRefs.current[0]?.focus(); // Устанавливаем фокус на первый инпут при монтировании компонента
+    inputRefs.current[0]?.focus();
   }, []);
 
   const isCodeComplete = code.every(digit => digit !== '');
@@ -68,8 +100,8 @@ export default function ConfirmationPage({ navigation, route }) {
           bottomOffset: 40,
         });
       } else if (response.ok) {
-        const userId = responseData.userId; // Предполагаем, что сервер возвращает userId в ответе
-        login({ userId, email }); // Сохраняем userId и email в контексте аутентификации
+        const userId = responseData.userId;
+        login({ userId, email });
         navigation.navigate('AppLog');
       }
     } catch (error) {
@@ -122,7 +154,6 @@ export default function ConfirmationPage({ navigation, route }) {
               onKeyPress={({ nativeEvent }) => handleKeyPress(index, nativeEvent.key)}
               keyboardType="numeric"
               selectionColor="#6f9c3d"
-              maxLength={1}
               onFocus={() => setFocusedIndex(index)}
               ref={(ref) => (inputRefs.current[index] = ref)}
               editable={true}
